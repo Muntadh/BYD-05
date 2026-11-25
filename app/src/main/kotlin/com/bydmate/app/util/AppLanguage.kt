@@ -17,6 +17,7 @@ val APP_LANGUAGES: List<Pair<String, String>> = listOf(
     "pt" to "Português",
     "pl" to "Polski",
     "be" to "Беларуская",
+    "ar" to "العربية",
 )
 
 /**

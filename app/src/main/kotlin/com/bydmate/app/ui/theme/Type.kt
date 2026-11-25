@@ -2,6 +2,9 @@ package com.bydmate.app.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import com.bydmate.app.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
@@ -48,3 +51,23 @@ val BYDMateTypography = Typography(
         lineHeight = 16.sp
     )
 )
+
+/** Arabic UI font (Tajawal, SIL OFL), used only when the app language is Arabic. */
+val TajawalFontFamily = FontFamily(
+    Font(R.font.tajawal_regular, FontWeight.Normal),
+    Font(R.font.tajawal_medium, FontWeight.Medium),
+    Font(R.font.tajawal_medium, FontWeight.SemiBold),
+    Font(R.font.tajawal_bold, FontWeight.Bold),
+)
+
+/** [BYDMateTypography] with every style switched to [TajawalFontFamily]. */
+val BYDMateArabicTypography: Typography = BYDMateTypography.run {
+    fun TextStyle.ar() = copy(fontFamily = TajawalFontFamily)
+    copy(
+        displayLarge = displayLarge.ar(), displayMedium = displayMedium.ar(), displaySmall = displaySmall.ar(),
+        headlineLarge = headlineLarge.ar(), headlineMedium = headlineMedium.ar(), headlineSmall = headlineSmall.ar(),
+        titleLarge = titleLarge.ar(), titleMedium = titleMedium.ar(), titleSmall = titleSmall.ar(),
+        bodyLarge = bodyLarge.ar(), bodyMedium = bodyMedium.ar(), bodySmall = bodySmall.ar(),
+        labelLarge = labelLarge.ar(), labelMedium = labelMedium.ar(), labelSmall = labelSmall.ar(),
+    )
+}

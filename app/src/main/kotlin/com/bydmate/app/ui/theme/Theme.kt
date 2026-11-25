@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 
@@ -56,9 +57,10 @@ fun ScaledDialogContent(content: @Composable () -> Unit) =
 fun BYDMateTheme(fontScale: Float = 1f, content: @Composable () -> Unit) {
     CompositionLocalProvider(LocalAppFontScale provides fontScale) {
         WithAppFontScale(fontScale) {
+            val isArabic = LocalConfiguration.current.locales[0].language == "ar"
             MaterialTheme(
                 colorScheme = DarkColorScheme,
-                typography = BYDMateTypography,
+                typography = if (isArabic) BYDMateArabicTypography else BYDMateTypography,
                 content = content
             )
         }

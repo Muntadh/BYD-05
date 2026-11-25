@@ -112,8 +112,11 @@ internal fun starterTemplates(lang: String): List<RuleEntity> {
 internal fun telegramReportTemplates(lang: String): List<RuleEntity> {
     // A local six-language helper: the shared tName above only knows zh/en/ru and falls back to
     // ru for be, en for pl/pt, which ends up in the sent report header (finding #4, 2026-09-27).
-    fun tName(zh: String, en: String, ru: String, be: String, pl: String, pt: String): String = when (lang) {
+    fun tName(
+        zh: String, en: String, ru: String, be: String, pl: String, pt: String, ar: String = en,
+    ): String = when (lang) {
         "zh" -> zh
+        "ar" -> ar
         "ru" -> ru
         "be" -> be
         "pl" -> pl
@@ -123,6 +126,7 @@ internal fun telegramReportTemplates(lang: String): List<RuleEntity> {
     val reportName = tName(
         "Telegram 报告", "Telegram report", "Отчёт в Telegram",
         "Справаздача ў Telegram", "Raport w Telegramie", "Relatório no Telegram",
+        "تقرير Telegram",
     )
     fun report(vararg fields: ReportField) = ActionDef(
         command = "",
@@ -135,12 +139,13 @@ internal fun telegramReportTemplates(lang: String): List<RuleEntity> {
             name = tName(
                 "车在哪里", "Where the car is", "Где машина",
                 "Дзе машына", "Gdzie jest samochód", "Onde está o carro",
+                "أين السيارة",
             ),
             enabled = false,
             triggerLogic = "AND",
             triggers = TriggerDef.listToJson(listOf(
                 TriggerDef("Gear", "档位", "==", "1", tName(
-                    "档位 = P", "Gear = P", "Передача = P", "Перадача = P", "Bieg = P", "Marcha = P",
+                    "档位 = P", "Gear = P", "Передача = P", "Перадача = P", "Bieg = P", "Marcha = P", "ناقل الحركة = P",
                 ))
             )),
             actions = ActionDef.listToJson(listOf(report(ReportField.LOCATION, ReportField.SOC, ReportField.RANGE))),
@@ -150,6 +155,7 @@ internal fun telegramReportTemplates(lang: String): List<RuleEntity> {
             name = tName(
                 "启动时状态", "Status at start", "Статус при запуске",
                 "Стан пры запуску", "Stan przy uruchomieniu", "Status ao iniciar",
+                "الحالة عند التشغيل",
             ),
             enabled = false,
             triggerLogic = "AND",
@@ -157,6 +163,7 @@ internal fun telegramReportTemplates(lang: String): List<RuleEntity> {
                 serviceStartTrigger(tName(
                     "BYDMate 启动", "BYDMate startup", "Запуск BYDMate",
                     "Запуск BYDMate", "Uruchomienie BYDMate", "Inicialização do BYDMate",
+                    "تشغيل BYDMate",
                 ))
             )),
             actions = ActionDef.listToJson(listOf(report(ReportField.SOC, ReportField.RANGE, ReportField.TRIP))),

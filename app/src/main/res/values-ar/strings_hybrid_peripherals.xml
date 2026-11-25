@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tg_report_range_hybrid">المدى %1$s على البطارية، و%2$s على الوقود</string>
+    <string name="tg_report_range_hybrid_ev">المدى %1$s على البطارية</string>
+    <string name="tg_report_range_hybrid_fuel">المدى %1$s على الوقود</string>
+    <string name="tg_report_fuel_period">الوقود: %1$.1f لتر، بمعدل %2$.1f لتر/100 كم</string>
+    <string name="tg_report_trip_fuel">الوقود: %1$.1f لتر</string>
+</resources>
