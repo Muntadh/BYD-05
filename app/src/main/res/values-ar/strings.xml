@@ -884,7 +884,7 @@
     <string name="settings_tg_backup_code_copied">تم نسخ الكود</string>
     <string name="settings_tg_backup_code_not_received">لم يصل الكود بعد. أرسله إلى البوت واضغط «تحقق» مرة أخرى.</string>
     <string name="settings_tg_backup_connected_chip">متصل</string>
-    <string name="settings_tg_backup_chat_line">@%1$s، %2$s</string>
+    <string name="settings_tg_backup_chat_line">\@%1$s، %2$s</string>
     <string name="settings_tg_backup_connected_note">تصل النسخ والتقارير إلى هنا.</string>
     <string name="settings_tg_backup_back">رجوع</string>
     <string name="settings_log_recording_help">سجل تفصيلي لعمل التطبيق. لا حاجة إليه إلا عندما يطلب المطوّر سجلاً لفحص مشكلة. فعّله، وكرّر المشكلة، وأوقف التسجيل وأرسل الملف من مجلد Download.</string>
