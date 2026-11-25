@@ -17,7 +17,8 @@ enum class AgentPersona(val id: String) {
 
     /** A random short filler ("Сейчас посмотрю.") spoken while a slow tool call is in flight,
      *  so the driver hears something before the real answer. */
-    fun fillerPhrase(random: Random = Random.Default): String = FILLER_POOLS.getValue(this).random(random)
+    fun fillerPhrase(random: Random = Random.Default): String =
+        if (VoiceLanguage.isArabic) ARABIC_FILLERS.random(random) else FILLER_POOLS.getValue(this).random(random)
 
     /** Every phrase this persona can speak (outcome pools + fillers), for the online-voice
      *  TTS precache -- nothing here is picked at runtime by index, only by content. */
@@ -61,6 +62,8 @@ enum class AgentPersona(val id: String) {
             NAVIGATOR -> NAVIGATOR_POOLS
             ENGINEER -> ENGINEER_POOLS
         }
+
+        private val ARABIC_FILLERS = listOf("لحظة، أتحقق.", "ثانية واحدة.", "دقيقة، أبحث.", "حاضر، أنظر الآن.")
 
         private val FILLER_POOLS = mapOf(
             NAVIGATOR to listOf("Сейчас посмотрю.", "Секунду, проверяю.", "Минутку.", "Уже смотрю."),

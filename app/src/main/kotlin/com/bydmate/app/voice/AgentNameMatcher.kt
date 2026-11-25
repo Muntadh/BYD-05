@@ -16,13 +16,16 @@ object AgentNameMatcher {
     fun stripLeadingName(transcript: String, name: String): String {
         val target = normalize(name)
         if (target.isEmpty()) return transcript
-        val raw = transcript.trim().split(Regex("\\s+"))
+        // Arabic address: "يا ليو افتح الشباك" -> the vocative "يا" goes with the name.
+        val raw = transcript.trim().split(Regex("\\s+")).let { w ->
+            if (w.size > 2 && normalize(w.first()) == "يا") w.drop(1) else w
+        }
         if (raw.size < 2 || !tokenMatches(normalize(raw.first()), target)) return transcript
         return raw.drop(1).joinToString(" ")
     }
 
     private fun normalize(s: String): String =
-        s.lowercase().replace('ё', 'е').filter { it.isLetterOrDigit() }
+        VoiceNormalizer.foldArabic(s).lowercase().replace('ё', 'е').filter { it.isLetterOrDigit() }
 
     private fun tokens(s: String): List<String> =
         s.split(Regex("\\s+")).map(::normalize).filter { it.isNotEmpty() }

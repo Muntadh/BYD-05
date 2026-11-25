@@ -1,6 +1,7 @@
 package com.bydmate.app.voice
 
 import android.content.Context
+import com.bydmate.app.util.appLanguageTag
 import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -42,9 +43,15 @@ class GigaAmModelManager(
         val availableBytes: Long,
     ) : IOException("needs $requiredBytes free bytes, only $availableBytes available")
 
-    private fun baseDir() = File(context.filesDir, "asr/gigaam-v3-ru")
+    /** Arabic app language: the Whisper base model (multilingual, decoded as Arabic) instead of
+     *  the Russian-only GigaAM. Both live side by side; the language picks which one is used. */
+    val isWhisper: Boolean get() = runCatching { context.appLanguageTag() == "ar" }.getOrDefault(false)
 
-    private fun stagingDir() = File(context.filesDir, "asr/.staging-gigaam-v3-ru")
+    private fun modelDirName() = if (isWhisper) "whisper-base" else "gigaam-v3-ru"
+
+    private fun baseDir() = File(context.filesDir, "asr/${modelDirName()}")
+
+    private fun stagingDir() = File(context.filesDir, "asr/.staging-${modelDirName()}")
 
     /** v2 model dir left behind by pre-v3.7 installs; swept on the next download/delete. */
     private fun legacyDir() = File(context.filesDir, "asr/gigaam-v2-ru")
@@ -67,11 +74,17 @@ class GigaAmModelManager(
 
     fun tokensPath(): String = File(baseDir(), "tokens.txt").absolutePath
 
+    fun whisperEncoderPath(): String = File(baseDir(), WHISPER_ENCODER).absolutePath
+
+    fun whisperDecoderPath(): String = File(baseDir(), WHISPER_DECODER).absolutePath
+
     fun vadPath(): String = vadFile().absolutePath
 
+    private fun modelFiles(): List<String> =
+        if (isWhisper) listOf(WHISPER_ENCODER, WHISPER_DECODER, TOKENS_FILE) else listOf(MODEL_FILE, TOKENS_FILE)
+
     private fun isModelComplete(dir: File): Boolean =
-        File(dir, "model.int8.onnx").let { it.isFile && it.length() > 0 } &&
-            File(dir, "tokens.txt").let { it.isFile && it.length() > 0 }
+        modelFiles().all { name -> File(dir, name).let { it.isFile && it.length() > 0 } }
 
     private fun isVadComplete(): Boolean = vadFile().let { it.isFile && it.length() > 0 }
 
@@ -115,11 +128,7 @@ class GigaAmModelManager(
             val dir = baseDir()
             val expected = readManifest(modelManifest(dir)) +
                 (readManifest(vadManifest())[VAD_KEY]?.let { mapOf(VAD_KEY to it) } ?: emptyMap())
-            val files = mapOf(
-                MODEL_FILE to File(dir, MODEL_FILE),
-                TOKENS_FILE to File(dir, TOKENS_FILE),
-                VAD_KEY to vadFile(),
-            )
+            val files = modelFiles().associateWith { File(dir, it) } + (VAD_KEY to vadFile())
             var unknown = false
             for ((key, file) in files) {
                 val want = expected[key]
@@ -174,8 +183,7 @@ class GigaAmModelManager(
 
     private fun writeModelManifest(dir: File) {
         writeManifest(modelManifest(dir), mapOf(
-            MODEL_FILE to sha256(File(dir, MODEL_FILE)),
-            TOKENS_FILE to sha256(File(dir, TOKENS_FILE)),
+            *modelFiles().map { it to sha256(File(dir, it)) }.toTypedArray(),
         ))
     }
 
@@ -200,7 +208,7 @@ class GigaAmModelManager(
     suspend fun download(onProgress: (Phase, Int) -> Unit): Result<Unit> =
         withContext(Dispatchers.IO) {
             runCatching {
-                val tmpArchive = File(context.cacheDir, "gigaam-v3-ru.tar.bz2")
+                val tmpArchive = File(context.cacheDir, "${modelDirName()}.tar.bz2")
                 val tmpVad = File(context.cacheDir, "silero_vad.onnx.tmp")
                 // Leftovers of a run the car's power-off killed before `finally` ran: the
                 // archive in cacheDir and a half-written staging dir. They would count as
@@ -213,10 +221,11 @@ class GigaAmModelManager(
                 // its same-size unpack in staging. Without this the run dies ~450 MB and many
                 // minutes in, as an opaque "unpack produced incomplete model dir".
                 val free = usableSpace()
-                if (free < REQUIRED_FREE_BYTES) throw InsufficientStorageException(REQUIRED_FREE_BYTES, free)
+                val required = if (isWhisper) WHISPER_REQUIRED_FREE_BYTES else REQUIRED_FREE_BYTES
+                if (free < required) throw InsufficientStorageException(required, free)
                 try {
                     // Model archive: 0..DOWNLOAD_WEIGHT of the combined progress.
-                    downloadToFile(MODEL_URL, tmpArchive) { pct ->
+                    downloadToFile(if (isWhisper) WHISPER_URL else MODEL_URL, tmpArchive) { pct ->
                         onProgress(Phase.DOWNLOAD, (pct * DOWNLOAD_WEIGHT) / 100)
                     }
                     ensureActive()
@@ -346,7 +355,11 @@ class GigaAmModelManager(
         target: File,
         canonicalTarget: File,
     ) {
-        val outFile = tarEntryFile(name.substringAfter('/'), target, canonicalTarget) ?: return
+        val inner = name.substringAfter('/')
+        // The Whisper archive also holds the fp32 models (~290 MB) and test wavs: keep only the
+        // int8 encoder/decoder and the tokens, under the fixed names the recognizer opens.
+        val wanted = if (isWhisper) WHISPER_ENTRIES[inner] ?: return else inner
+        val outFile = tarEntryFile(wanted, target, canonicalTarget) ?: return
         if (isDirectory) outFile.mkdirs() else copyEntry(tar, outFile)
     }
 
@@ -393,6 +406,20 @@ class GigaAmModelManager(
         const val VAD_URL =
             "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx"
         const val MODEL_SIZE_LABEL = "226 МБ"
+
+        const val WHISPER_URL =
+            "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-whisper-base.tar.bz2"
+        const val WHISPER_SIZE_LABEL = "208 MB"
+        private const val WHISPER_ENCODER = "encoder.int8.onnx"
+        private const val WHISPER_DECODER = "decoder.int8.onnx"
+        private val WHISPER_ENTRIES = mapOf(
+            "base-encoder.int8.onnx" to WHISPER_ENCODER,
+            "base-decoder.int8.onnx" to WHISPER_DECODER,
+            "base-tokens.txt" to TOKENS_FILE,
+        )
+
+        /** The 208 MB archive in cacheDir plus the ~160 MB of int8 files kept from it. */
+        const val WHISPER_REQUIRED_FREE_BYTES = 400L * 1024 * 1024
 
         /** Uncompressed size ~= download size: an int8 .onnx barely compresses. */
         const val MODEL_ARCHIVE_BYTES = 226L * 1024 * 1024

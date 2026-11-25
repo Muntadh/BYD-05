@@ -26,6 +26,7 @@ val APP_LANGUAGES: List<Pair<String, String>> = listOf(
  */
 fun applyAppLanguage(appContext: Context, localePreferences: LocalePreferences, lang: String) {
     localePreferences.setLanguage(lang)
+    com.bydmate.app.voice.VoiceLanguage.update(lang)
     AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(lang))
     // Force overlay teardown so the next attach picks up the new locale.
     // applicationContext keeps a stale Configuration after setApplicationLocales,

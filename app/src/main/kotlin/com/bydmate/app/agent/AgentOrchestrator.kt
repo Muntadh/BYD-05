@@ -188,7 +188,8 @@ class AgentOrchestrator @Inject constructor(
         val dynamic = "Сегодня " + SimpleDateFormat("d MMMM yyyy 'года,' EEEE", Locale("ru"))
             .format(Date(nowMs())) + "." +
             AgentPersonaPrompt.block(identity()) +
-            (if (includeMemory) memoryBlock() + dayMemory.promptBlock(nowMs()) else "")
+            (if (includeMemory) memoryBlock() + dayMemory.promptBlock(nowMs()) else "") +
+            (if (com.bydmate.app.voice.VoiceLanguage.isArabic) ARABIC_REPLY_RULE else "")
         val static = if (vehicleKindMonitor?.kind?.value == VehicleKind.HYBRID) HYBRID_SYSTEM_PROMPT else SYSTEM_PROMPT
         return listOf(AgentMessage.System(static), AgentMessage.System(dynamic))
     }
@@ -400,6 +401,17 @@ class AgentOrchestrator @Inject constructor(
         private const val TRUNCATED_MARK = "…"
         private const val LOOP_ERROR =
             """{"error":"этот вызов уже выполнялся с теми же аргументами, смени подход или ответь пользователю"}"""
+        /** Arabic app language: overrides the Russian reply language of [SYSTEM_PROMPT]. The
+         *  driver speaks Arabic (often Iraqi dialect) and the reply is spoken by an Arabic voice. */
+        internal const val ARABIC_REPLY_RULE =
+            "\nLANGUAGE OVERRIDE (highest priority, overrides every earlier rule about the reply language): " +
+                "the driver speaks Arabic, often Iraqi dialect, and the speech recognizer writes it in Arabic script. " +
+                "Understand the request in Arabic and ALWAYS answer in clear, short Modern Standard Arabic " +
+                "that an Iraqi driver understands; never answer in Russian or English. Write numbers as digits " +
+                "and units in Arabic (كم، كيلوواط ساعة، درجة). Tool descriptions and tool results are in Russian: " +
+                "use them, but translate what you say into Arabic. Search and route queries may stay in the " +
+                "language the driver used. The same short-reply style rules apply."
+
         internal val SYSTEM_PROMPT = """
             Ты голосовой ассистент автомобиля BYD в приложении BYDMate. Водитель за рулём,
             ответ читается вслух: отвечай по-русски, максимум 1-2 коротких предложения,

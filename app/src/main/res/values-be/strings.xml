@@ -1417,6 +1417,7 @@
     <string name="settings_voice_volume_hint">Гучнасць адказаў рэгулюецца сістэмным каналам Voice: кнопкі гучнасці на рулі ці Налады гуку машыны</string>
     <string name="settings_tts_voice_irina">Irina</string>
     <string name="settings_tts_voice_dmitri">Дзмітрый</string>
+    <string name="settings_tts_voice_kareem">Карым (арабскі)</string>
     <string name="settings_tts_voice_ruslan">Ruslan</string>
     <string name="settings_tts_voice_alena">Алена</string>
     <string name="settings_tts_voice_mark">Марк</string>

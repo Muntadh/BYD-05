@@ -56,14 +56,16 @@ class VoiceDictionary internal constructor(
 
     companion object {
         const val RESOURCE = "voice/ru_commands.txt"
+        const val RESOURCE_AR = "voice/ar_commands.txt"
         internal const val NUM = "#"
 
         /** Politeness and address words: dropped from the utterance anywhere, never in a template. */
-        val FILLERS: Set<String> = VoicePhrase.FILLERS + setOf("спасибо", "хочу", "я")
+        val FILLERS: Set<String> = VoicePhrase.FILLERS + setOf("спасибо", "хочу", "я") +
+            setOf("شكرا", "اريد", "اريدك", "ابي", "ابغي", "ابغى")
 
-        fun load(): VoiceDictionary {
-            val stream = requireNotNull(VoiceDictionary::class.java.classLoader?.getResourceAsStream(RESOURCE)) {
-                "$RESOURCE is missing"
+        fun load(resource: String = RESOURCE): VoiceDictionary {
+            val stream = requireNotNull(VoiceDictionary::class.java.classLoader?.getResourceAsStream(resource)) {
+                "$resource is missing"
             }
             return parse(stream.bufferedReader(Charsets.UTF_8).use { it.readText() })
         }

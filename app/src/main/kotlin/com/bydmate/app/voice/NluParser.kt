@@ -35,9 +35,16 @@ object NluParser {
     // A corrupt resource must never surface as internal_error: a failed load is logged once
     // here (by "by lazy") and every phrase after it goes to the agent instead, same as one the
     // dictionary itself does not recognize.
-    private val dictionary: VoiceDictionary? by lazy {
+    private val ruDictionary: VoiceDictionary? by lazy { loadDictionary(VoiceDictionary.RESOURCE) }
+    private val arDictionary: VoiceDictionary? by lazy { loadDictionary(VoiceDictionary.RESOURCE_AR) }
+
+    /** The dictionary of the current voice language ([VoiceLanguage]). */
+    private val dictionary: VoiceDictionary?
+        get() = if (VoiceLanguage.isArabic) arDictionary else ruDictionary
+
+    private fun loadDictionary(resource: String): VoiceDictionary? {
         val start = System.currentTimeMillis()
-        runCatching { VoiceDictionary.load() }
+        return runCatching { VoiceDictionary.load(resource) }
             .onSuccess {
                 val ms = System.currentTimeMillis() - start
                 Log.i(TAG, "dictionary loaded: templates=${it.templateCount} keys=${it.keyCount} in $ms ms")
@@ -54,7 +61,7 @@ object NluParser {
             Log.w(TAG, "self-test: dictionary unavailable")
             return
         }
-        val result = parse("закрой люк", dict)
+        val result = parse(if (VoiceLanguage.isArabic) "اغلق السقف" else "закрой люк", dict)
         val summary = (result as? ParseResult.Command)?.commands?.joinToString(",") ?: result::class.simpleName
         Log.i(TAG, "self-test: закрой люк -> $summary")
     }
@@ -93,7 +100,9 @@ object NluParser {
         var i = 0
         while (i < words.size) {
             val also = words[i] == "а" && words.getOrNull(i + 1) == "также"
-            if (words[i] == "и" || also) parts.add(mutableListOf()) else parts.last().add(words[i])
+            // Arabic: "و" / "ثم" between two commands.
+            val joiner = words[i] == "и" || words[i] == "و" || words[i] == "ثم"
+            if (joiner || also) parts.add(mutableListOf()) else parts.last().add(words[i])
             i += if (also) 2 else 1
         }
         return parts

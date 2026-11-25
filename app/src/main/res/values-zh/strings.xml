@@ -1385,6 +1385,7 @@
     <string name="settings_tts_voice_ruslan">Ruslan</string>
     <string name="settings_tts_voice_alena">Alyona</string>
     <string name="settings_tts_voice_dmitri">德米特里</string>
+    <string name="settings_tts_voice_kareem">卡里姆（阿拉伯语）</string>
     <string name="settings_tts_voice_mark">马克</string>
     <string name="settings_tts_voice_sofia">索菲娅</string>
     <string name="settings_tts_voice_local_badge">本地</string>

@@ -90,6 +90,7 @@ class BYDMateApp : Application(), Configuration.Provider {
         }
         installCrashHandler()
         bootstrapLocale()
+        com.bydmate.app.voice.VoiceLanguage.update(localePreferences.getLanguage())
         initOsmdroid()
         appScope.launch {
             // v2.8.1: clear stale "DIPLUS" data_source value from pre-native-stack

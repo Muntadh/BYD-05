@@ -78,7 +78,7 @@ object VoiceModule {
     fun provideSelectedTtsVoice(@ApplicationContext ctx: Context): () -> TtsVoice = {
         val prefs = ctx.getSharedPreferences("voice", Context.MODE_PRIVATE)
         val id = prefs.getString("tts_voice", TtsModelManager.DEFAULT_VOICE_ID) ?: TtsModelManager.DEFAULT_VOICE_ID
-        TtsVoiceCatalog.byId(id)
+        TtsVoiceCatalog.effective(id)
     }
 
     @Provides @Singleton

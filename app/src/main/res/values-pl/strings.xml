@@ -1417,6 +1417,7 @@
     <string name="settings_voice_volume_hint">Głośność odpowiedzi reguluje systemowy kanał Voice: przyciski głośności na kierownicy albo Ustawienia dźwięku auta</string>
     <string name="settings_tts_voice_irina">Irina</string>
     <string name="settings_tts_voice_dmitri">Dmitri</string>
+    <string name="settings_tts_voice_kareem">Kareem (arabski)</string>
     <string name="settings_tts_voice_ruslan">Ruslan</string>
     <string name="settings_tts_voice_alena">Alona</string>
     <string name="settings_tts_voice_mark">Mark</string>

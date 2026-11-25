@@ -1253,6 +1253,7 @@
     <string name="settings_tts_voice_ruslan">Ruslan</string>
     <string name="settings_tts_voice_alena">Aliona</string>
     <string name="settings_tts_voice_dmitri">Dmitri</string>
+    <string name="settings_tts_voice_kareem">Kareem (árabe)</string>
     <string name="settings_tts_voice_mark">Mark</string>
     <string name="settings_tts_voice_sofia">Sofia</string>
     <string name="settings_tts_voice_local_badge">Local</string>

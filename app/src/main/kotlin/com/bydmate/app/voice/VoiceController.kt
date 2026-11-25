@@ -190,7 +190,10 @@ class VoiceController @Inject @Suppress("LongParameterList") constructor( // Hil
 
     /** Speak a short phrase for every session outcome (not only agent answers).
      *  Overlay text stays detailed; the spoken phrase is terse for the road. */
-    private suspend fun announce(title: String, overlay: String, spoken: String, done: Boolean = false) {
+    private suspend fun announce(title: String, overlayRu: String, spokenRu: String, done: Boolean = false) {
+        // Arabic voice language: the Russian feedback frames become Arabic (VoiceArabic).
+        val overlay = VoiceArabic.localize(overlayRu)
+        val spoken = VoiceArabic.spoken(spokenRu)
         // Hard stop gate: never start a new announcement after the orb went off — the callers'
         // runCatching wrappers swallow the cancellation that would otherwise stop this path.
         // coroutineContext.isActive is the per-turn mark: a cancelled routing turn stays

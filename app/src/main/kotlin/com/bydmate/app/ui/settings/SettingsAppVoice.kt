@@ -573,10 +573,14 @@ internal fun VoiceSettingsContent(
                         )
                     }
                     SettingActionRow(
-                        title = "GigaAM",
+                        title = if (com.bydmate.app.voice.VoiceLanguage.isArabic) "Whisper" else "GigaAM",
                         buttonLabel = stringResource(
                             R.string.settings_asr_gigaam_download,
-                            com.bydmate.app.voice.GigaAmModelManager.MODEL_SIZE_LABEL,
+                            if (com.bydmate.app.voice.VoiceLanguage.isArabic) {
+                                com.bydmate.app.voice.GigaAmModelManager.WHISPER_SIZE_LABEL
+                            } else {
+                                com.bydmate.app.voice.GigaAmModelManager.MODEL_SIZE_LABEL
+                            },
                         ),
                         onClick = { viewModel.downloadGigaAmModel() },
                         style = SettingButtonStyle.Primary,

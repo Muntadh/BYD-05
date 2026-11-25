@@ -8,6 +8,7 @@ import com.k2fsa.sherpa.onnx.OfflineModelConfig
 import com.k2fsa.sherpa.onnx.OfflineNemoEncDecCtcModelConfig
 import com.k2fsa.sherpa.onnx.OfflineRecognizer
 import com.k2fsa.sherpa.onnx.OfflineRecognizerConfig
+import com.k2fsa.sherpa.onnx.OfflineWhisperModelConfig
 import com.k2fsa.sherpa.onnx.SileroVadModelConfig
 import com.k2fsa.sherpa.onnx.Vad
 import com.k2fsa.sherpa.onnx.VadModelConfig
@@ -46,12 +47,28 @@ private class RealRecognizerHandle(modelManager: GigaAmModelManager) : Recognize
     private val recognizer = OfflineRecognizer(
         config = OfflineRecognizerConfig(
             featConfig = FeatureConfig(sampleRate = GigaAmAsrEngine.SAMPLE_RATE, featureDim = 80),
-            modelConfig = OfflineModelConfig(
-                nemo = OfflineNemoEncDecCtcModelConfig(model = modelManager.modelPath()),
-                tokens = modelManager.tokensPath(),
-                numThreads = 4,
-                provider = "cpu",
-            ),
+            modelConfig = if (modelManager.isWhisper) {
+                // Arabic: multilingual Whisper base, forced to Arabic transcription.
+                OfflineModelConfig(
+                    whisper = OfflineWhisperModelConfig(
+                        encoder = modelManager.whisperEncoderPath(),
+                        decoder = modelManager.whisperDecoderPath(),
+                        language = "ar",
+                        task = "transcribe",
+                    ),
+                    tokens = modelManager.tokensPath(),
+                    modelType = "whisper",
+                    numThreads = 4,
+                    provider = "cpu",
+                )
+            } else {
+                OfflineModelConfig(
+                    nemo = OfflineNemoEncDecCtcModelConfig(model = modelManager.modelPath()),
+                    tokens = modelManager.tokensPath(),
+                    numThreads = 4,
+                    provider = "cpu",
+                )
+            },
             decodingMethod = "greedy_search",
         ),
     )
@@ -165,6 +182,7 @@ internal class GigaAmAsrEngine @Suppress("LongParameterList") constructor(
     // first listened words (field defect APK 337). The VAD stays per-collection: it is cheap and
     // stateful, so a fresh instance per session is the safe reset.
     @Volatile private var cachedRecognizer: RecognizerHandle? = null
+    @Volatile private var cachedIsWhisper: Boolean = false
 
     // warmVad only: one VAD built ahead and not used yet (PR #261, DiLink 3.0 ATTO 3: building it
     // after the start cue swallowed the first words). A session takes it and owns it from then on
@@ -194,8 +212,16 @@ internal class GigaAmAsrEngine @Suppress("LongParameterList") constructor(
      *  both funnel through here, so a background warm-up racing a PTT session can never each
      *  load the 226 MiB model and orphan the loser's handle. */
     @Synchronized
-    private fun obtainRecognizer(): RecognizerHandle =
-        cachedRecognizer ?: run {
+    private fun obtainRecognizer(): RecognizerHandle {
+        // The app language switched between Arabic (Whisper) and the rest (GigaAM): the cached
+        // recognizer holds the other model, drop it so the right one loads below.
+        val whisper = modelManager.isWhisper
+        if (cachedRecognizer != null && cachedIsWhisper != whisper) {
+            cachedRecognizer?.let { runCatching { it.close() } }
+            cachedRecognizer = null
+        }
+        cachedIsWhisper = whisper
+        return cachedRecognizer ?: run {
             // Bracket the native load with the crash-loop guard: a corrupt model aborts
             // the process inside recognizerFactory() (SIGABRT from JNI), so only the
             // begin mark survives — that asymmetry is how the next start detects it.
@@ -205,6 +231,7 @@ internal class GigaAmAsrEngine @Suppress("LongParameterList") constructor(
             recordIntegrity(model = true)
             handle.also { cachedRecognizer = it }
         }
+    }
 
     // Same crash-loop bracket as the recognizer: the silero VAD is a native .onnx load
     // too, and a corrupt file aborts the process the same way. Separate artifact key so

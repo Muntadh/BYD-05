@@ -18,7 +18,18 @@ enum class VehicleQuestion(val id: String) {
 
     /** [rangeKm] is the estimate the dashboard shows: the snapshot itself holds no range. A
      *  charge or a climate setpoint of 0 is a cold-start reading, not a value. */
-    fun answer(d: DiParsData?, rangeKm: Double?): String? = when (this) {
+    fun answer(d: DiParsData?, rangeKm: Double?): String? =
+        if (VoiceLanguage.isArabic) answerArabic(d, rangeKm) else answerRussian(d, rangeKm)
+
+    private fun answerArabic(d: DiParsData?, rangeKm: Double?): String? = when (this) {
+        OUTSIDE_TEMP -> d?.exteriorTemp?.let { "الحرارة في الخارج $it درجة." }
+        CABIN_TEMP -> d?.insideTemp?.let { "الحرارة داخل السيارة $it درجة." }
+        SOC -> d?.soc?.takeIf { it in 1..100 }?.let { "الشحن $it بالمئة." }
+        RANGE -> rangeKm?.roundToInt()?.let { "المدى المتبقي $it كيلومتر." }
+        AC_TEMP -> d?.acTemp?.takeIf { it > 0 }?.let { "المكيف على $it درجة." }
+    }
+
+    private fun answerRussian(d: DiParsData?, rangeKm: Double?): String? = when (this) {
         OUTSIDE_TEMP -> d?.exteriorTemp?.let { "Снаружи ${degrees(it)}." }
         CABIN_TEMP -> d?.insideTemp?.let { "В салоне ${degrees(it)}." }
         SOC -> d?.soc?.takeIf { it in 1..100 }?.let { "Заряд $it ${plural(it, "процент", "процента", "процентов")}." }

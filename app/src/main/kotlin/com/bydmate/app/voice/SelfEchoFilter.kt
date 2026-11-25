@@ -135,10 +135,10 @@ class SelfEchoFilter(private val now: () -> Long = System::currentTimeMillis) {
      * Normalizes text: lowercase, replace ё→е, remove punctuation, collapse spaces, split into words.
      */
     private fun normalize(text: String): List<String> {
-        return text
+        return VoiceNormalizer.foldArabic(text)
             .lowercase()
             .replace("ё", "е")
-            .replace(Regex("[^а-яa-z0-9\\s]"), " ")  // remove punctuation
+            .replace(Regex("[^а-яa-z0-9\\s\\u0621-\\u064A]"), " ")  // remove punctuation, keep Arabic letters
             .split(Regex("\\s+"))                     // split on whitespace
             .filter { it.isNotEmpty() }               // remove empty tokens
     }

@@ -1274,6 +1274,7 @@
     <string name="settings_tts_voice_ruslan">رسلان</string>
     <string name="settings_tts_voice_alena">أليونا</string>
     <string name="settings_tts_voice_dmitri">دميتري</string>
+    <string name="settings_tts_voice_kareem">كريم (عربي)</string>
     <string name="settings_tts_voice_mark">مارك</string>
     <string name="settings_tts_voice_sofia">صوفيا</string>
     <string name="settings_tts_voice_local_badge">محلي</string>

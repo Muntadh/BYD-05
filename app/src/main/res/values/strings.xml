@@ -1421,6 +1421,7 @@
     <string name="settings_voice_volume_hint">Громкость ответов регулируется системным каналом Voice: кнопки громкости на руле или Настройки звука машины</string>
     <string name="settings_tts_voice_irina">Irina</string>
     <string name="settings_tts_voice_dmitri">Дмитрий</string>
+    <string name="settings_tts_voice_kareem">Карим (арабский)</string>
     <string name="settings_tts_voice_ruslan">Ruslan</string>
     <string name="settings_tts_voice_alena">Алёна</string>
     <string name="settings_tts_voice_mark">Марк</string>

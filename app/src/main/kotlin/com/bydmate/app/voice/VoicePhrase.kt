@@ -11,7 +11,9 @@ object VoicePhrase {
     private val WHITESPACE = Regex("\\s+")
 
     // Politeness and address words that never change what the driver asked for.
-    internal val FILLERS = setOf("пожалуйста", "можешь", "мне", "слушай", "эй")
+    internal val FILLERS = setOf("пожалуйста", "можешь", "мне", "слушай", "эй") +
+        // Arabic, folded spelling (see VoiceNormalizer.foldArabic).
+        setOf("رجاء", "رجاءا", "ممكن", "بليز", "حبيبي", "يا", "عيني")
 
     /** The key two phrases collide on: equal exactly when [isExact] holds between them. */
     fun normalize(phrase: String): String = words(phrase).joinToString(" ")
@@ -19,7 +21,7 @@ object VoicePhrase {
     /** The words of [phrase] as spoken, without stemming: lowercase, ё→е, no punctuation, no
      *  fillers. Matching and collisions are judged on these, so «открой окна» is not «открой окно». */
     fun words(phrase: String): List<String> =
-        phrase.lowercase()
+        VoiceNormalizer.foldArabic(phrase).lowercase()
             .replace('ё', 'е')
             .replace(NON_WORD, " ")
             .split(WHITESPACE)
