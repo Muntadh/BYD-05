@@ -1,0 +1,433 @@
+# BYDMate built-in voice commands, Arabic (قاموس الاوامر الصوتيه العربي).
+#
+# This file mirrors ru_commands.txt for Arabic: the same commands on the right of "=>", copied
+# from the Russian file, with Arabic phrases (Modern Standard Arabic plus common Iraqi and Gulf
+# forms) on the left. Keep the two in step: a command added there gets its phrases here.
+#
+# A phrase runs offline only when it equals one phrase of this file, word for word. Anything
+# else goes to the cloud agent (or gets "not understood" without it). "A و B" and "A ثم B" run
+# when every part is a command of this file on its own, so a template never holds a standalone
+# "و" or "ثم" (an attached "والسقف" is one word and is fine).
+#
+# Both the phrase and the template words are normalized the same way, and templates are written
+# already normalized: no tashkeel or tatweel; أ إ آ ٱ -> ا, ة -> ه, ى -> ي, ؤ -> و, ئ -> ي;
+# punctuation out; "%" -> "بالمئه"; number words -> digits ("خمسه وعشرين" -> 25), so number
+# places are written as digits, slots or ranges. Filler words (رجاء رجاءا ممكن بليز شكرا حبيبي
+# اريد اريدك ابي ابغى يا عيني, and "من فضلك", "لو سمحت", "لو تسمح") are dropped from the phrase
+# and may not appear here.
+#
+# Lines ("#" starts a comment; a line starting with a space continues the previous one):
+#   rule NAME: a|b|...                       alternatives, used as <NAME>
+#   list NAME: forms => VALUE ; forms => VALUE
+#                                            slot used as {NAME}; forms are |-separated phrases in
+#                                            template syntax or number ranges like 10..49
+#   range NAME: 16..30                       slot whose value is the number said
+#   TEMPLATE => COMMAND                      a phrase and what it runs
+#   solo TEMPLATE => COMMAND                 the same, but only as the whole phrase, never as one
+#                                            part of "A و B" (a phrase without its own verb would
+#                                            take the other part's verb there)
+# Template syntax: words, <rule>, {slot}, [optional part], (a|b) choice, a|b at the top level.
+# COMMAND: dispatch strings joined by " + ", each {slot} replaced by its value; a value of several
+# symbols "a,b" repeats the command once per symbol, in that order. Built-ins:
+#   TEMP +1, TEMP -1    cabin temperature one step up or down
+#   VOL PAYLOAD         media volume: +1, -1, mute, unmute or a level
+#   ASK QUESTION        a question answered from the car's readings, nothing runs: outside_temp,
+#                       cabin_temp, soc, range, ac_temp; a value the car does not report sends
+#                       the phrase to the agent
+#   MUSIC               Yandex Music's personal mix, as the agent's play_music starts it with no
+#                       query
+#   NAVIGATE SHORTCUT   a route to Home or Work (home, work), as the agent routes "home", started
+#   ROUTE SHORTCUT      the same route, only built: the driver starts it
+#   OPEN_NAVIGATOR      the navigator chosen for routes, launched as the agent's launch_app does
+
+# ---- Verbs ---------------------------------------------------------------------------------
+# "نزل" (lower) opens a window and "صعد"/"ارفع" (raise) closes it, like опусти/подними.
+# Devices are also switched on with "افتح" and off with "سكر"/"اغلق"/"بند"/"سد" in Iraqi speech.
+
+rule open: <open_lid>|نزل|نزلي
+rule close: <close_lid>|صعد|صعدي|ارفع|ارفعي
+# Lids (sunroof, shade, trunk) only open and close: "نزل"/"ارفع" say nothing clear there.
+rule open_lid: افتح|فتح|افتحي|فك|فكي
+rule close_lid: اغلق|سكر|سكري|سد|سدي|بند|بندي|اقفل
+# Topic first: "الشباك نزله", "السقف افتحه".
+rule open_it: <open_lid_it>|نزله|نزلها|نزلهم
+rule open_lid_it: افتحه|افتحها|افتحهم|فكه|فكها
+rule close_it: سكره|سكرها|سكرهم|اغلقه|اغلقها|سده|سدها|صعده|صعدها|صعدهم
+rule ajar: وارب|واربي
+rule air: هوي|هويها
+rule set: خلي|اجعل|اضبط|ضبط|ظبط|حط|سوي
+rule on: شغل|شغلي|ولع|ولعي|فعل|فعلي|افتح|فتح
+rule off: طفي|اطفي|وقف|اوقف|عطل|سكر|سكري|اغلق|اقفل|بند|سد
+
+# ---- How far an opening goes ---------------------------------------------------------------
+# A spoken share maps to the widest detent that does not exceed it: windows 10 (vent), 50, 100;
+# the sunroof 7 (tilt), 50, 100. Below the smallest detent nothing matches.
+
+rule full: بالكامل|كامل|كامله|كله|كلها|للاخر|لاخر|الي الاخر|علي الاخر|عالاخر|تماما|فول
+rule half: نص|للنص|الي النص|بالنص|نصها|نصف|للنصف|الي النصف
+rule little: شوي|شويه|شوي شوي|قليلا|قليل|حبه|بسيط|للتهويه
+rule prep: الي|علي|بنسبه|لحد|لغايه
+rule pct_word: بالمئه|بالميه|في المئه|في الميه|بالمايه
+list frac: ثلث|الثلث|للثلث|بالثلث|ربع|الربع|للربع|بالربع => 通风 ; 3 ارباع|الي 3 ارباع => 半开
+list pct1: 10..49 => 通风 ; 50..99 => 半开 ; 100 => 打开100
+list pcts: 10..49 => 通风 ; 50..99 => 半开 ; 100 => 全开
+list set1: 0 => 打开0 ; 10..49 => 通风 ; 50..99 => 半开 ; 100 => 打开100
+list sets: 0 => 关闭 ; 10..49 => 通风 ; 50..99 => 半开 ; 100 => 全开
+list roof_pct: 7..49 => 天窗通风 ; 50..99 => 天窗打开50 ; 100 => 天窗打开100
+list roof_frac: ثلث|الثلث|للثلث|ربع|الربع|للربع => 天窗通风 ; 3 ارباع|الي 3 ارباع => 天窗打开50
+
+# ---- Windows -------------------------------------------------------------------------------
+# A bare singular window and "my window" are the driver's; "left"/"right" alone are the rear
+# ones (the front ones are the driver's and the passenger's). The car is left-hand drive.
+
+rule okno: نافذه|النافذه|شباك|الشباك|جامه|الجامه|زجاج|الزجاج
+rule okna: النوافذ|الشبابيك|الجامات
+rule drv: السايق|السواق|الدريول
+rule psg: الراكب|المرافق
+rule front: الامامي|الاماميه|قدام|القدام
+rule back: الخلفي|الخلفيه|ورا|الورا|الوراني|الورانيه
+rule left: اليسار|اليسري|يسار|الايسر
+rule right: اليمين|اليمني|يمين|الايمن
+list win: <okno>|نافذتي|شباكي|جامتي|<okno> مالتي|<okno> <drv>|<okno> (جهه|يم|مال) <drv>
+        |<okno> <front> <left>|<okno> <left> <front> => 主驾 ;
+    <okno> <psg>|<okno> (جهه|يم|مال) <psg>|<okno> <front> <right>|<okno> <right> <front> => 副驾 ;
+    <okno> <left>|<okno> <back> <left>|<okno> <left> <back> => 后左 ;
+    <okno> <right>|<okno> <back> <right>|<okno> <right> <back> => 后右
+list wins: <okna>|(كل|جميع) <okna>|<okna> كلها|(نوافذ|شبابيك|جامات) السياره => 车窗 ;
+    [كل] <okna> (الاماميه|القدام|اللي قدام)|(نوافذ|شبابيك|جامات) <drv> (والراكب|والمرافق) => 前排车窗 ;
+    [كل] <okna> (الخلفيه|الورا|الورانيه|اللي ورا) => 后排车窗
+
+# Fully open or closed.
+<open> {win} [<full>] => {win}打开100
+{win} <open_it> => {win}打开100
+<open> {wins} [<full>] => {wins}全开
+{wins} <open_it> => {wins}全开
+[بردان|بارد] <close> {win} [بالكامل|للاخر|تماما] => {win}打开0
+{win} <close_it> => {win}打开0
+[بردان|بارد] <close> {wins} [بالكامل|للاخر|تماما] => {wins}关闭
+{wins} <close_it> => {wins}关闭
+
+# Halfway.
+(<open>|<close>|<ajar>|<set>) {win} <half> => {win}半开
+<open> (نص|نصف) {win} => {win}半开
+solo {win} <half> => {win}半开
+(<open>|<close>|<ajar>|<set>) {wins} <half> => {wins}半开
+solo {wins} <half> => {wins}半开
+
+# The vent detent: ajar, a little, airing.
+<ajar> {win} [<little>] => {win}通风
+<open> {win} <little> => {win}通风
+<air> {win} => {win}通风
+<set> {win} (للتهويه|علي التهويه) => {win}通风
+<set> فتحه [بسيطه|صغيره] (بالشباك|بالجامه|بالنافذه|في الشباك|في الجامه|في النافذه) => 主驾通风
+solo {win} <little> => {win}通风
+<ajar> {wins} [<little>] => {wins}通风
+<open> {wins} <little> => {wins}通风
+<air> {wins} => {wins}通风
+<set> {wins} (للتهويه|علي التهويه) => {wins}通风
+solo {wins} <little> => {wins}通风
+<air> (السياره|الصالون|المقصوره|الكابينه) => 车窗通风
+rule mode: الوضع|وضع|مود|المود
+solo [<on>] <mode> (التهويه|تهويه) => 车窗通风 + 天窗通风
+solo <off> <mode> (التهويه|تهويه) => 车窗关闭 + 天窗打开0
+
+# A share by number or fraction.
+<open> {win} [<prep>] {pct1} [<pct_word>] => {win}{pct1}
+<set> {win} [<prep>] {set1} [<pct_word>] => {win}{set1}
+<open> {win} {frac} => {win}{frac}
+solo {win} <prep> {pct1} [<pct_word>] => {win}{pct1}
+solo {win} {pct1} <pct_word> => {win}{pct1}
+solo {pct1} <pct_word> {win} => {win}{pct1}
+solo {win} {frac} => {win}{frac}
+<open> {wins} [<prep>] {pcts} [<pct_word>] => {wins}{pcts}
+<set> {wins} [<prep>] {sets} [<pct_word>] => {wins}{sets}
+<open> {wins} {frac} => {wins}{frac}
+solo {wins} <prep> {pcts} [<pct_word>] => {wins}{pcts}
+solo {wins} {pcts} <pct_word> => {wins}{pcts}
+solo {wins} {frac} => {wins}{frac}
+
+# Every window but some: each door that is left gets its own command.
+rule all_wins: <okna>|(كل|جميع) <okna>|<okna> كلها
+rule except: الا|ماعدا|ما عدا|عدا|غير|باستثناء|بس مو
+list kept: [<okno>] <drv>|نافذتي|شباكي|جامتي|<okno> مالتي|<okno> <front> <left> => 副驾,后左,后右 ;
+    [<okno>] <psg>|<okno> <front> <right> => 主驾,后左,后右 ;
+    <okno> <back> <left> => 主驾,副驾,后右 ;
+    <okno> <back> <right> => 主驾,副驾,后左 ;
+    <okna> (الخلفيه|الورا|الورانيه) => 主驾,副驾 ;
+    <okna> (الاماميه|القدام) => 后左,后右 ;
+    [<okno>] <drv> (والراكب|والمرافق)|(نوافذ|شبابيك|جامات) <drv> (والراكب|والمرافق) => 后左,后右 ;
+    <okno> <back> <left> (واليمين|واليمني) => 主驾,副驾
+<open> <all_wins> <except> {kept} => {kept}打开100
+<close> <all_wins> <except> {kept} => {kept}打开0
+<ajar> <all_wins> <except> {kept} => {kept}通风
+
+# ---- Sunroof and its shade -----------------------------------------------------------------
+
+rule roof: فتحه السقف|السقف|سقف السياره|الصنروف|السنروف
+<open_lid> <roof> [<full>] => 天窗打开100
+<roof> <open_lid_it> => 天窗打开100
+<close_lid> <roof> [بالكامل|للاخر|تماما] => 天窗打开0
+<roof> <close_it> => 天窗打开0
+(<open_lid>|<close_lid>|<ajar>|<set>) <roof> <half> => 天窗打开50
+solo <roof> <half> => 天窗打开50
+<ajar> <roof> [<little>] => 天窗通风
+<open_lid> <roof> <little> => 天窗通风
+<air> <roof> => 天窗通风
+<set> <roof> (للتهويه|علي التهويه) => 天窗通风
+solo <roof> <little> => 天窗通风
+<open_lid> <roof> [<prep>] {roof_pct} [<pct_word>] => {roof_pct}
+<open_lid> <roof> {roof_frac} => {roof_frac}
+rule shade: الستاره|ستاره السقف|ستاره الفتحه|الستاير
+<open_lid> <shade> => 遮阳帘打开
+<close_lid> <shade> => 遮阳帘关闭
+
+# Windows and the sunroof together ("و" is attached, so the phrase stays one part).
+rule with_roof: والسقف|وفتحه السقف|والصنروف|والسنروف|مع السقف|مع فتحه السقف|مع الصنروف
+rule with_wins: والنوافذ|والشبابيك|والجامات|وكل النوافذ|وكل الشبابيك|وكل الجامات
+        |مع النوافذ|مع الشبابيك|مع الجامات
+<open_lid> <all_wins> <with_roof> => 车窗全开 + 天窗打开100
+<open_lid> <roof> <with_wins> => 天窗打开100 + 车窗全开
+<close_lid> <all_wins> <with_roof> => 车窗关闭 + 天窗打开0
+<close_lid> <roof> <with_wins> => 天窗打开0 + 车窗关闭
+<close_lid> <roof> (والستاره|وستاره السقف|مع الستاره|مع ستاره السقف) => 天窗打开0 + 遮阳帘关闭
+
+# ---- Seats ---------------------------------------------------------------------------------
+# A seat without a side is the driver's; the car is left-hand drive, so "left" is the driver's
+# seat and "right" the passenger's. Levels 1..3; "the highest" is 3.
+
+rule heat: تدفيه|التدفيه|تسخين|التسخين|دفايه|الدفايه
+rule blow: تهويه|التهويه|تبريد|التبريد
+rule seat1: المقعد|مقعد|الكرسي|كرسي|السيت
+rule seats: المقاعد|مقاعد|الكراسي|كراسي
+list seat: <seat1>|مقعدي|<seat1> مالتي|<seat1> مالي|<seat1> <drv>|<seat1> مال <drv>
+        |<seat1> (اليسار|الايسر)|<seat1> <front> (اليسار|الايسر) => 主驾 ;
+    <seat1> <psg>|<seat1> مال <psg>|<seat1> (اليمين|الايمن)|<seat1> <front> (اليمين|الايمن) => 副驾 ;
+    <seats>|كل <seats>|<seats> كلها|المقاعد الاماميه|الكراسي الاماميه|الكراسي القدام
+        |<seats> <drv> (والراكب|والمرافق) => 主驾,副驾
+rule lvl_n: درجه|الدرجه|مستوي|المستوي
+list lvl: [علي|الي] [<lvl_n>] 1|[علي|الي] [الدرجه|المستوي] (الاولي|الاول)|[علي] (الاقل|اقل شي) => 1 ;
+    [علي|الي] [<lvl_n>] 2|[علي|الي] [الدرجه|المستوي] (الثانيه|الثاني) => 2 ;
+    [علي|الي] [<lvl_n>] 3|[علي|الي] [الدرجه|المستوي] (الثالثه|الثالث)
+        |[علي] (الاعلي|اعلي شي|الاخير|الماكس)|عالاخير|فول => 3
+list lvl_ord: الاولي|الاول => 1 ; الثانيه|الثاني => 2 ; الثالثه|الثالث => 3
+
+(<on>|<set>) <heat> {seat} => {seat}座椅加热1档
+solo <heat> {seat} => {seat}座椅加热1档
+(<on>|<set>) <heat> {seat} {lvl} => {seat}座椅加热{lvl}档
+solo <heat> {seat} {lvl} => {seat}座椅加热{lvl}档
+(الدرجه|المستوي) {lvl_ord} (لتدفيه|لتسخين) {seat} => {seat}座椅加热{lvl_ord}档
+<off> <heat> {seat} => {seat}座椅加热关闭
+(<on>|<set>) <blow> {seat} => {seat}座椅通风1档
+solo <blow> {seat} => {seat}座椅通风1档
+(<on>|<set>) <blow> {seat} {lvl} => {seat}座椅通风{lvl}档
+solo <blow> {seat} {lvl} => {seat}座椅通风{lvl}档
+(الدرجه|المستوي) {lvl_ord} (لتهويه|لتبريد) {seat} => {seat}座椅通风{lvl_ord}档
+<on> <blow> {seat} (قوي|قويه|بقوه) => {seat}座椅通风3档
+solo <blow> {seat} (قوي|قويه|بقوه) => {seat}座椅通风3档
+<off> <blow> {seat} => {seat}座椅通风关闭
+
+# ---- Steering wheel and mirrors ------------------------------------------------------------
+# "سكان"/"ستيرن"/"دركسون" are the Iraqi names of the steering wheel.
+
+rule wheel: السكان|سكان|الستيرن|الستيرنك|المقود|مقود|الدركسون
+<on> <heat> <wheel> => 方向盘加热
+<on> <heat> <wheel> (والمقاعد|والكراسي|مع المقاعد|مع الكراسي) => 方向盘加热 + 主驾座椅加热1档 + 副驾座椅加热1档
+<off> <heat> <wheel> => 关闭方向盘加热
+rule mirrors: المرايا|مرايا|المرايات|كل المرايا|المرايا الجانبيه
+<on> <heat> <mirrors> => 后视镜加热
+<off> <heat> <mirrors> => 关闭后视镜加热
+
+# ---- Climate -------------------------------------------------------------------------------
+
+rule ac: المكيف|مكيف|التكييف|التبريد|الكوندشن|الكونديشن
+rule auto: اوتو|الاوتو|اوتوماتيك|الاوتوماتيك|اوتوماتيكي|تلقايي|التلقايي
+<on> <ac> => 自动空调
+<on> <mode> <auto> (للمكيف|للتكييف|مال المكيف) => 自动空调 + 空调自动
+<ac> <auto> => 自动空调 + 空调自动
+(<on>|<set>) <ac> علي <auto> => 自动空调 + 空调自动
+solo <ac> علي <auto> => 自动空调 + 空调自动
+<off> <ac> => 关闭空调
+<on> (المروحه|مروحه المكيف|الفان) => 打开空调通风
+rule recirc: تدوير الهوا|تدوير الهواء|التدوير الداخلي|تدوير داخلي|الدوره الداخليه|الهوا الداخلي
+        |الهواء الداخلي|اعاده التدوير|اعاده تدوير الهوا|اعاده تدوير الهواء
+<on> <recirc> => 内循环
+<off> <recirc> => 外循环
+<on> (الهوا|الهواء|الدوره|التدوير) (الخارجي|الخارجيه) => 外循环
+rule windshield: الزجاج الامامي|الجامه الاماميه|الجامه القدام|الزجاج|الجامه|الواجهه
+rule defog: نفخ|هوا|هواء|تدفيه|ازاله ضباب|مزيل ضباب
+<on> <defog> <windshield> => 吹前挡
+<on> (الديفروست|ديفروست|مزيل الضباب) => 吹前挡
+<off> <defog> <windshield> => 关闭吹前挡
+<off> (الديفروست|ديفروست|مزيل الضباب) => 关闭吹前挡
+# Blow direction (ac_wind_mode 1..5). "علي الزجاج" is the direction; "نفخ الزجاج" above is the
+# windshield defrost button, a different fid.
+rule feet: الرجلين|الارجل|القدمين|الريول
+list airflow: علي الوجه|للوجه|عالوجه => 吹面 ;
+    (علي الوجه|للوجه|عالوجه) (والرجلين|والارجل|والقدمين|والريول) => 吹面吹脚 ;
+    علي <feet>|للرجلين|للارجل|للقدمين|للريول => 吹脚 ;
+    (علي <feet>|للرجلين|للارجل|للقدمين|للريول) (والزجاج|والجامه) => 吹脚除霜 ;
+    علي (الزجاج|الزجاج الامامي|الجامه|الجامه الاماميه)|للزجاج|للجامه => 除霜
+rule airobj: الهوا|الهواء|النفخ|المكيف|التكييف
+(<on>|<set>) <airobj> {airflow} => {airflow}
+solo <airobj> {airflow} => {airflow}
+
+range temp: 16..33
+rule deg: درجه|درجات|درجه مئويه
+rule temp_obj: الحراره|حراره|درجه الحراره|حراره السياره|حراره المكيف|<ac>
+<set> <temp_obj> [علي|الي] {temp} [<deg>] => 设置温度{temp}
+<temp_obj> [علي|الي] {temp} [<deg>] => 设置温度{temp}
+<set> {temp} <deg> => 设置温度{temp}
+solo {temp} <deg> => 设置温度{temp}
+
+rule warmer: ادفا|ادفي|احر|اسخن
+rule cooler: ابرد|ابرد شوي|اكثر برودا
+<set> [الجو|السياره] <warmer> => TEMP +1
+solo <warmer> => TEMP +1
+<set> [الجو|السياره] <cooler> => TEMP -1
+solo <cooler> => TEMP -1
+(زيد|ارفع|علي) (الحراره|درجه الحراره|حراره المكيف) => TEMP +1
+(نزل|قلل|نقص|خفض|وطي) (الحراره|درجه الحراره|حراره المكيف) => TEMP -1
+[الجو|السياره|الجو بالسياره] (بارد|بارده)|بردان|بردانه|بردانين|متجمد => TEMP +1
+[الجو|السياره|الجو بالسياره] (حار|حاره|شوب|خانق)|حران|حرانه|حرانين|مخنوق => TEMP -1
+
+# Fan speed 1..7.
+range fan: 1..7
+rule fan_obj: المروحه|مروحه المكيف|سرعه المروحه|سرعه الهوا|سرعه الهواء|قوه الهوا|قوه الهواء|الفان|الهوا|الهواء
+list fan_lvl: (علي|الي) (الاعلي|الاخير|الماكس|اعلي شي)|عالاخير|فول => 7 ;
+    (علي|الي) (الاقل|اقل شي)|عالاقل => 1 ;
+    [علي|الي] [الدرجه|السرعه] (الاولي|الاول) => 1 ;
+    [علي|الي] [الدرجه|السرعه] (الثانيه|الثاني) => 2 ;
+    [علي|الي] [الدرجه|السرعه] (الثالثه|الثالث) => 3 ;
+    [علي|الي] [الدرجه|السرعه] (الرابعه|الرابع) => 4 ;
+    [علي|الي] [الدرجه|السرعه] (الخامسه|الخامس) => 5 ;
+    [علي|الي] [الدرجه|السرعه] (السادسه|السادس) => 6 ;
+    [علي|الي] [الدرجه|السرعه] (السابعه|السابع) => 7
+(<set>|<on>) <fan_obj> [علي|الي] [درجه|سرعه|رقم] {fan} => 风量{fan}
+solo <fan_obj> [علي|الي] [درجه|سرعه|رقم] {fan} => 风量{fan}
+(<set>|<on>) <fan_obj> {fan_lvl} => 风量{fan_lvl}
+solo <fan_obj> {fan_lvl} => 风量{fan_lvl}
+
+# ---- Media volume --------------------------------------------------------------------------
+
+range vol: 0..100
+rule sound: الصوت|الفوليوم|صوت الموسيقي|صوت الاغاني|صوت المسجل
+rule louder: اعلي|اعلي شوي|عالي|اقوي
+rule quieter: اوطي|اوطي شوي|واطي|اقل
+<set> <sound> <louder> => VOL +1
+solo (اعلي|اعلي شوي|صوت اعلي) => VOL +1
+<set> <sound> <quieter> => VOL -1
+solo (اوطي|اوطي شوي|صوت اوطي) => VOL -1
+(ارفع|علي|زيد|كبر|زود) <sound> => VOL +1
+(وطي|نزل|قلل|خفض|نقص|صغر|خفف) <sound> => VOL -1
+<sound> (<louder>|زيده|ارفعه|عليه) => VOL +1
+<sound> (<quieter>|وطيه|نزله|قلله) => VOL -1
+<off> <sound>|(اكتم|كتم) <sound>|ميوت => VOL mute
+<on> <sound>|(فك|الغي) الكتم => VOL unmute
+<set> <sound> [علي|الي] {vol} [<pct_word>] => VOL {vol}
+solo <sound> [علي|الي] {vol} [<pct_word>] => VOL {vol}
+
+# ---- Yandex Music --------------------------------------------------------------------------
+# Only with "ياندكس": a bare "شغل موسيقي" names no app and stays with the agent.
+
+rule yandex_music: (ياندكس|يانديكس|يندكس) (ميوزك|ميوزيك|موسيقي)|موسيقي (ياندكس|يانديكس)
+(<on>|حط) <yandex_music> => MUSIC
+solo <yandex_music> => MUSIC
+
+# ---- Navigation ----------------------------------------------------------------------------
+# Home and Work only with a verb or "المسار": a bare "للبيت" or "يلا" says too little.
+
+list home_work: للبيت|الي البيت|عالبيت|البيت|للمنزل|الي المنزل|للدار => home ;
+    للشغل|الي الشغل|عالشغل|للعمل|الي العمل|للدوام|الي الدوام|عالدوام => work
+(يلا|يله|روح|روحي|نروح|يلا نروح|خلنا نروح|سوق) {home_work} => NAVIGATE {home_work}
+(سوي|اعمل|حدد|ارسم|خطط) (مسار|المسار|طريق|الطريق) {home_work} => ROUTE {home_work}
+solo (مسار|المسار|الطريق) {home_work} => ROUTE {home_work}
+(<on>|شغل) (الملاحه|الخريطه|الخرايط|النافيجيتر|الجي بي اس) => OPEN_NAVIGATOR
+solo (الملاحه|النافيجيتر) => OPEN_NAVIGATOR
+
+# ---- Locks and trunk -----------------------------------------------------------------------
+# "سكر الباب" said to a passenger is not addressed to the car: only "السياره" and the lock
+# verbs lock and unlock.
+
+(اقفل|قفل|سكر|اغلق) السياره => 车门上锁
+(افتح|فتح) السياره => 车门解锁
+(اقفل|قفل) (الابواب|ابواب السياره|كل الابواب|الابواب كلها) => 车门上锁
+(فك|افتح) (القفل|قفل السياره|قفل الابواب|اقفال الابواب) => 车门解锁
+rule trunk: الصندوق|صندوق|الصندوق الخلفي|صندوق السياره|الدبه|الدبه الخلفيه|الشنطه
+<open_lid> <trunk> => 开后备箱
+<close_lid> <trunk> => 关后备箱
+# The front trunk opens only on a standing car: the dispatcher's speed gate holds it.
+rule frunk: الصندوق الامامي|الصندوق القدام|الدبه الاماميه|الدبه القدام|الشنطه الاماميه
+<open_lid> <frunk> => 前备箱打开
+<close_lid> <frunk> => 前备箱关闭
+
+# ---- Spoiler -------------------------------------------------------------------------------
+# "ارفع" and "نزل" are the spoiler's own up and down here, the opposite of what they mean for a
+# window, so the window verb rules are not used. A car without a powered spoiler answers that it
+# has none; a standing car with the spoiler up refuses down and auto. There is no "auto off":
+# that phrase goes to the agent, which explains that up or down switches to manual.
+
+rule spoiler: الجناح|الجناح الخلفي|السبويلر|الاسبويلر
+rule spoiler_up: ارفع|ارفعي|طلع|صعد|افتح|فتح
+rule spoiler_down: نزل|نزلي|اخفض|دخل|رجع|سكر|اغلق
+<spoiler_up> <spoiler> => 打开尾翼
+<spoiler_down> <spoiler> => 关闭尾翼
+<on> <mode> <auto> (للجناح|مال الجناح|للسبويلر) => 尾翼自动模式
+(<set>|حول) <spoiler> (علي|الي) [الوضع] <auto> => 尾翼自动模式
+solo <spoiler> (علي|الي) [الوضع] <auto> => 尾翼自动模式
+
+# ---- Lights --------------------------------------------------------------------------------
+
+rule ambient: الاضاءه المحيطه|الامبينت|الانبينت|الاضاءه الملونه|الاضواء الملونه|اضاءه الجو|الليدات
+<on> <ambient> => 氛围灯打开
+<off> <ambient> => 氛围灯关闭
+rule light: الضوء|الضو|النور|الليت|اللايت|الاضاءه
+rule inside: الداخلي|الداخليه|بالسياره|داخل السياره|جوه|الصالون
+<on> <light> [<inside>] => 打开车内灯
+<off> <light> [<inside>] => 关闭车内灯
+rule drl: الضوء النهاري|ضوء النهار|اضواء النهار|الاضواء النهاريه|الانوار النهاريه|الليتات النهاريه
+<on> <drl> => 打开日行灯
+<off> <drl> => 关闭日行灯
+
+# ---- HUD -----------------------------------------------------------------------------------
+# Only with a word that names the HUD or the windshield: a bare "العرض" stays with the agent,
+# which also moves the navigator onto the cluster.
+
+rule hud: hud|الهد|الهاد|الهيد اب|شاشه الزجاج|العرض علي الزجاج|الاسقاط علي الزجاج|شاشه العرض الاماميه
+<on> <hud> => 打开抬头显示
+<off> <hud> => 关闭抬头显示
+
+# ---- Drive mode ----------------------------------------------------------------------------
+# Terrain modes (snow, sand, mud, mountain, smart) switch only up to 15 km/h: the dispatcher's
+# gate, not the dictionary. A mode without a verb is solo: "طفي X و الوضع الرياضي" must not
+# switch sport on.
+
+list drive: <mode> (الاقتصادي|اقتصادي|الايكو|ايكو)|ايكو مود => ECO模式 ;
+    <mode> (العادي|عادي|الطبيعي|النورمال|نورمال)|نورمال مود => 普通模式 ;
+    <mode> (الرياضي|رياضي|السبورت|سبورت)|سبورت مود => 运动模式 ;
+    <mode> (الثلج|الثلجي|السنو) => 雪地模式 ;
+    <mode> (الرمل|الرملي|الرمال) => 沙地模式 ;
+    <mode> (الطين|الطيني|الوحل) => 泥地模式 ;
+    <mode> (الجبل|الجبلي|الجبال) => 山地模式 ;
+    <mode> (الذكي|ذكي|السمارت) => 智能模式
+(<on>|<set>) {drive} => {drive}
+(حول|غير|بدل) (الي|علي) {drive} => {drive}
+solo {drive} => {drive}
+
+# ---- Questions -----------------------------------------------------------------------------
+# Answered from the car's own readings. Weather, charging stations and anything longer stay
+# with the agent; a question never takes part in "A و B". "كم باقي كيلو" stays with the agent
+# too: on a route it asks for the distance left, not for the range.
+
+rule ask_how: كم|شكد|شقد|شنو|ماهي|ما هي
+rule temp_n: الحراره|درجه الحراره
+rule outside: برا|بره|خارج السياره|بالخارج|في الخارج
+rule cabin: داخل السياره|بالسياره|في السياره|جوه|بالداخل
+solo [<ask_how>] <temp_n> <outside> => ASK outside_temp
+solo [<ask_how>] درجه الحراره الخارجيه => ASK outside_temp
+solo [<ask_how>] <temp_n> <cabin> => ASK cabin_temp
+solo [<ask_how>] درجه الحراره الداخليه => ASK cabin_temp
+solo [<ask_how>] (نسبه الشحن|الشحن|نسبه البطاريه|شحن البطاريه) => ASK soc
+solo (كم|شكد) (باقي|بقي) (شحن|من الشحن|بالبطاريه) => ASK soc
+solo [<ask_how>] (المدي|المدي المتبقي|مدي القياده|مدي البطاريه|الرينج) => ASK range
+solo (علي كم|علي شكد|شكد|كم) [حاط|مضبوط] <ac> => ASK ac_temp
+solo [<ask_how>] (حراره|درجه حراره) (المكيف|التكييف) => ASK ac_temp
