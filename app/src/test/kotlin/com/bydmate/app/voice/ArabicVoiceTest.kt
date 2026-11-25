@@ -29,7 +29,7 @@ class ArabicVoiceTest {
         assertEquals("افتح النافذه", VoiceNormalizer.foldArabic("إفْتَحْ النّافِذَة"))
         assertEquals(listOf("25"), VoiceNormalizer.digits(VoiceNormalizer.tokens("خمسة وعشرين")))
         assertEquals(listOf("25"), VoiceNormalizer.digits(VoiceNormalizer.tokens("خمسة و عشرين")))
-        assertEquals(listOf("50", "بالمئه"), VoiceNormalizer.digits(VoiceNormalizer.tokens("٥٠٪")))
+        assertEquals(listOf("50", "بالميه"), VoiceNormalizer.digits(VoiceNormalizer.tokens("٥٠٪")))
     }
 
     @Test fun arabic_phrases_run_offline_only_in_arabic() {

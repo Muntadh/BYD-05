@@ -11,7 +11,7 @@
 #
 # Both the phrase and the template words are normalized the same way, and templates are written
 # already normalized: no tashkeel or tatweel; أ إ آ ٱ -> ا, ة -> ه, ى -> ي, ؤ -> و, ئ -> ي;
-# punctuation out; "%" -> "بالمئه"; number words -> digits ("خمسه وعشرين" -> 25), so number
+# punctuation out; "%" -> "بالميه"; number words -> digits ("خمسه وعشرين" -> 25), so number
 # places are written as digits, slots or ranges. Filler words (رجاء رجاءا ممكن بليز شكرا حبيبي
 # اريد اريدك ابي ابغى يا عيني, and "من فضلك", "لو سمحت", "لو تسمح") are dropped from the phrase
 # and may not appear here.
@@ -44,30 +44,30 @@
 # "نزل" (lower) opens a window and "صعد"/"ارفع" (raise) closes it, like опусти/подними.
 # Devices are also switched on with "افتح" and off with "سكر"/"اغلق"/"بند"/"سد" in Iraqi speech.
 
-rule open: <open_lid>|نزل|نزلي
-rule close: <close_lid>|صعد|صعدي|ارفع|ارفعي
+rule open: <open_lid>|نزل
+rule close: <close_lid>|صعد|ارفع
 # Lids (sunroof, shade, trunk) only open and close: "نزل"/"ارفع" say nothing clear there.
-rule open_lid: افتح|فتح|افتحي|فك|فكي
-rule close_lid: اغلق|سكر|سكري|سد|سدي|بند|بندي|اقفل
+rule open_lid: افتح|فتح|افتحي|فك
+rule close_lid: اغلق|سكر|سد|بند|اقفل
 # Topic first: "الشباك نزله", "السقف افتحه".
-rule open_it: <open_lid_it>|نزله|نزلها|نزلهم
-rule open_lid_it: افتحه|افتحها|افتحهم|فكه|فكها
-rule close_it: سكره|سكرها|سكرهم|اغلقه|اغلقها|سده|سدها|صعده|صعدها|صعدهم
+rule open_it: <open_lid_it>|نزله|نزلها
+rule open_lid_it: افتحه|افتحها|فكه|فكها
+rule close_it: سكره|سكرها|اغلقه|اغلقها|سدها|صعده|صعدها
 rule ajar: وارب|واربي
 rule air: هوي|هويها
-rule set: خلي|اجعل|اضبط|ضبط|ظبط|حط|سوي
-rule on: شغل|شغلي|ولع|ولعي|فعل|فعلي|افتح|فتح
-rule off: طفي|اطفي|وقف|اوقف|عطل|سكر|سكري|اغلق|اقفل|بند|سد
+rule set: خلي|اجعل|اضبط|حط|سوي
+rule on: شغل|شغلي|ولع|فعل|افتح
+rule off: طفي|اطفي|وقف|سكر|اغلق|بند|سد
 
 # ---- How far an opening goes ---------------------------------------------------------------
 # A spoken share maps to the widest detent that does not exceed it: windows 10 (vent), 50, 100;
 # the sunroof 7 (tilt), 50, 100. Below the smallest detent nothing matches.
 
-rule full: بالكامل|كامل|كامله|كله|كلها|للاخر|لاخر|الي الاخر|علي الاخر|عالاخر|تماما|فول
-rule half: نص|للنص|الي النص|بالنص|نصها|نصف|للنصف|الي النصف
-rule little: شوي|شويه|شوي شوي|قليلا|قليل|حبه|بسيط|للتهويه
-rule prep: الي|علي|بنسبه|لحد|لغايه
-rule pct_word: بالمئه|بالميه|في المئه|في الميه|بالمايه
+rule full: بالكامل|كامل|كلها|للاخر|علي الاخر|عالاخر|تماما
+rule half: نص|للنص|الي النص|بالنص|نصف|للنصف
+rule little: شوي|شويه|قليلا|حبه|بسيط|للتهويه
+rule prep: الي|علي|بنسبه
+rule pct_word: بالميه|في الميه
 list frac: ثلث|الثلث|للثلث|بالثلث|ربع|الربع|للربع|بالربع => 通风 ; 3 ارباع|الي 3 ارباع => 半开
 list pct1: 10..49 => 通风 ; 50..99 => 半开 ; 100 => 打开100
 list pcts: 10..49 => 通风 ; 50..99 => 半开 ; 100 => 全开
@@ -80,22 +80,23 @@ list roof_frac: ثلث|الثلث|للثلث|ربع|الربع|للربع => 天
 # A bare singular window and "my window" are the driver's; "left"/"right" alone are the rear
 # ones (the front ones are the driver's and the passenger's). The car is left-hand drive.
 
-rule okno: نافذه|النافذه|شباك|الشباك|جامه|الجامه|زجاج|الزجاج
+rule okno: النافذه|الشباك|الجامه|شباك|جامه
 rule okna: النوافذ|الشبابيك|الجامات
 rule drv: السايق|السواق|الدريول
 rule psg: الراكب|المرافق
-rule front: الامامي|الاماميه|قدام|القدام
-rule back: الخلفي|الخلفيه|ورا|الورا|الوراني|الورانيه
-rule left: اليسار|اليسري|يسار|الايسر
-rule right: اليمين|اليمني|يمين|الايمن
-list win: <okno>|نافذتي|شباكي|جامتي|<okno> مالتي|<okno> <drv>|<okno> (جهه|يم|مال) <drv>
-        |<okno> <front> <left>|<okno> <left> <front> => 主驾 ;
-    <okno> <psg>|<okno> (جهه|يم|مال) <psg>|<okno> <front> <right>|<okno> <right> <front> => 副驾 ;
-    <okno> <left>|<okno> <back> <left>|<okno> <left> <back> => 后左 ;
-    <okno> <right>|<okno> <back> <right>|<okno> <right> <back> => 后右
-list wins: <okna>|(كل|جميع) <okna>|<okna> كلها|(نوافذ|شبابيك|جامات) السياره => 车窗 ;
-    [كل] <okna> (الاماميه|القدام|اللي قدام)|(نوافذ|شبابيك|جامات) <drv> (والراكب|والمرافق) => 前排车窗 ;
-    [كل] <okna> (الخلفيه|الورا|الورانيه|اللي ورا) => 后排车窗
+rule front: الامامي|الاماميه
+rule back: الخلفي|الخلفيه
+rule left: اليسار|اليسري|الايسر
+rule right: اليمين|اليمني|الايمن
+rule okno_def: الشباك|النافذه|الجامه
+rule okno_of: شباك|نافذه|جامه
+list win: <okno>|نافذتي|شباكي|جامتي|<okno_of> <drv>|<okno_def> <front> <left> => 主驾 ;
+    <okno_of> <psg>|<okno_def> <front> <right> => 副驾 ;
+    <okno_def> <left>|<okno_def> <back> <left> => 后左 ;
+    <okno_def> <right>|<okno_def> <back> <right> => 后右
+list wins: <okna>|كل <okna>|<okna> كلها|(شبابيك|جامات) السياره => 车窗 ;
+    <okna> (الاماميه|القدام)|(شبابيك|جامات) <drv> والراكب => 前排车窗 ;
+    <okna> (الخلفيه|الورا) => 后排车窗
 
 # Fully open or closed.
 <open> {win} [<full>] => {win}打开100
@@ -147,16 +148,15 @@ solo {wins} {pcts} <pct_word> => {wins}{pcts}
 solo {wins} {frac} => {wins}{frac}
 
 # Every window but some: each door that is left gets its own command.
-rule all_wins: <okna>|(كل|جميع) <okna>|<okna> كلها
-rule except: الا|ماعدا|ما عدا|عدا|غير|باستثناء|بس مو
-list kept: [<okno>] <drv>|نافذتي|شباكي|جامتي|<okno> مالتي|<okno> <front> <left> => 副驾,后左,后右 ;
-    [<okno>] <psg>|<okno> <front> <right> => 主驾,后左,后右 ;
-    <okno> <back> <left> => 主驾,副驾,后右 ;
-    <okno> <back> <right> => 主驾,副驾,后左 ;
-    <okna> (الخلفيه|الورا|الورانيه) => 主驾,副驾 ;
+rule all_wins: <okna>|كل <okna>
+rule except: الا|ماعدا|عدا|بس مو
+list kept: [<okno_of>] <drv>|شباكي|جامتي|نافذتي => 副驾,后左,后右 ;
+    [<okno_of>] <psg> => 主驾,后左,后右 ;
+    <okno_def> <back> <left> => 主驾,副驾,后右 ;
+    <okno_def> <back> <right> => 主驾,副驾,后左 ;
+    <okna> (الخلفيه|الورا) => 主驾,副驾 ;
     <okna> (الاماميه|القدام) => 后左,后右 ;
-    [<okno>] <drv> (والراكب|والمرافق)|(نوافذ|شبابيك|جامات) <drv> (والراكب|والمرافق) => 后左,后右 ;
-    <okno> <back> <left> (واليمين|واليمني) => 主驾,副驾
+    [<okno_of>] <drv> والراكب => 后左,后右
 <open> <all_wins> <except> {kept} => {kept}打开100
 <close> <all_wins> <except> {kept} => {kept}打开0
 <ajar> <all_wins> <except> {kept} => {kept}通风
@@ -195,20 +195,17 @@ rule with_wins: والنوافذ|والشبابيك|والجامات|وكل ال
 # A seat without a side is the driver's; the car is left-hand drive, so "left" is the driver's
 # seat and "right" the passenger's. Levels 1..3; "the highest" is 3.
 
-rule heat: تدفيه|التدفيه|تسخين|التسخين|دفايه|الدفايه
-rule blow: تهويه|التهويه|تبريد|التبريد
-rule seat1: المقعد|مقعد|الكرسي|كرسي|السيت
+rule heat: تدفيه|التدفيه|تسخين
+rule blow: تهويه|التهويه|تبريد
+rule seat1: المقعد|مقعد|الكرسي|كرسي
 rule seats: المقاعد|مقاعد|الكراسي|كراسي
-list seat: <seat1>|مقعدي|<seat1> مالتي|<seat1> مالي|<seat1> <drv>|<seat1> مال <drv>
-        |<seat1> (اليسار|الايسر)|<seat1> <front> (اليسار|الايسر) => 主驾 ;
-    <seat1> <psg>|<seat1> مال <psg>|<seat1> (اليمين|الايمن)|<seat1> <front> (اليمين|الايمن) => 副驾 ;
-    <seats>|كل <seats>|<seats> كلها|المقاعد الاماميه|الكراسي الاماميه|الكراسي القدام
-        |<seats> <drv> (والراكب|والمرافق) => 主驾,副驾
-rule lvl_n: درجه|الدرجه|مستوي|المستوي
-list lvl: [علي|الي] [<lvl_n>] 1|[علي|الي] [الدرجه|المستوي] (الاولي|الاول)|[علي] (الاقل|اقل شي) => 1 ;
-    [علي|الي] [<lvl_n>] 2|[علي|الي] [الدرجه|المستوي] (الثانيه|الثاني) => 2 ;
-    [علي|الي] [<lvl_n>] 3|[علي|الي] [الدرجه|المستوي] (الثالثه|الثالث)
-        |[علي] (الاعلي|اعلي شي|الاخير|الماكس)|عالاخير|فول => 3
+list seat: <seat1>|مقعدي|<seat1> مالتي|<seat1> <drv>|<seat1> (اليسار|الايسر) => 主驾 ;
+    <seat1> <psg>|<seat1> (اليمين|الايمن) => 副驾 ;
+    <seats>|كل <seats>|المقاعد الاماميه|الكراسي الاماميه|الكراسي القدام => 主驾,副驾
+rule lvl_n: درجه|الدرجه
+list lvl: [علي] [<lvl_n>] 1|الدرجه (الاولي|الاول)|علي الاقل => 1 ;
+    [علي] [<lvl_n>] 2|الدرجه (الثانيه|الثاني) => 2 ;
+    [علي] [<lvl_n>] 3|الدرجه (الثالثه|الثالث)|علي (الاعلي|الاخير|الماكس)|عالاخير => 3
 list lvl_ord: الاولي|الاول => 1 ; الثانيه|الثاني => 2 ; الثالثه|الثالث => 3
 
 (<on>|<set>) <heat> {seat} => {seat}座椅加热1档
@@ -272,7 +269,7 @@ rule airobj: الهوا|الهواء|النفخ|المكيف|التكييف
 solo <airobj> {airflow} => {airflow}
 
 range temp: 16..33
-rule deg: درجه|درجات|درجه مئويه
+rule deg: درجه|درجات|درجه مويه
 rule temp_obj: الحراره|حراره|درجه الحراره|حراره السياره|حراره المكيف|<ac>
 <set> <temp_obj> [علي|الي] {temp} [<deg>] => 设置温度{temp}
 <temp_obj> [علي|الي] {temp} [<deg>] => 设置温度{temp}
@@ -292,18 +289,18 @@ solo <cooler> => TEMP -1
 
 # Fan speed 1..7.
 range fan: 1..7
-rule fan_obj: المروحه|مروحه المكيف|سرعه المروحه|سرعه الهوا|سرعه الهواء|قوه الهوا|قوه الهواء|الفان|الهوا|الهواء
-list fan_lvl: (علي|الي) (الاعلي|الاخير|الماكس|اعلي شي)|عالاخير|فول => 7 ;
-    (علي|الي) (الاقل|اقل شي)|عالاقل => 1 ;
-    [علي|الي] [الدرجه|السرعه] (الاولي|الاول) => 1 ;
-    [علي|الي] [الدرجه|السرعه] (الثانيه|الثاني) => 2 ;
-    [علي|الي] [الدرجه|السرعه] (الثالثه|الثالث) => 3 ;
-    [علي|الي] [الدرجه|السرعه] (الرابعه|الرابع) => 4 ;
-    [علي|الي] [الدرجه|السرعه] (الخامسه|الخامس) => 5 ;
-    [علي|الي] [الدرجه|السرعه] (السادسه|السادس) => 6 ;
-    [علي|الي] [الدرجه|السرعه] (السابعه|السابع) => 7
-(<set>|<on>) <fan_obj> [علي|الي] [درجه|سرعه|رقم] {fan} => 风量{fan}
-solo <fan_obj> [علي|الي] [درجه|سرعه|رقم] {fan} => 风量{fan}
+rule fan_obj: المروحه|سرعه المروحه|سرعه الهوا|الفان|الهوا|الهواء
+list fan_lvl: علي (الاعلي|الاخير|الماكس)|عالاخير => 7 ;
+    علي الاقل => 1 ;
+    [علي] [الدرجه] (الاولي|الاول) => 1 ;
+    [علي] [الدرجه] (الثانيه|الثاني) => 2 ;
+    [علي] [الدرجه] (الثالثه|الثالث) => 3 ;
+    [علي] [الدرجه] (الرابعه|الرابع) => 4 ;
+    [علي] [الدرجه] (الخامسه|الخامس) => 5 ;
+    [علي] [الدرجه] (السادسه|السادس) => 6 ;
+    [علي] [الدرجه] (السابعه|السابع) => 7
+(<set>|<on>) <fan_obj> [علي] [درجه|رقم] {fan} => 风量{fan}
+solo <fan_obj> [علي] [درجه|رقم] {fan} => 风量{fan}
 (<set>|<on>) <fan_obj> {fan_lvl} => 风量{fan_lvl}
 solo <fan_obj> {fan_lvl} => 风量{fan_lvl}
 

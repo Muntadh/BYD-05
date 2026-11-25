@@ -77,7 +77,7 @@ object VoiceNormalizer {
                 },
             )
         }
-        return ARABIC_POLITE.replace(sb.toString(), " ").replace("%", " بالمئه ")
+        return ARABIC_POLITE.replace(sb.toString(), " ").replace("%", " بالميه ")
     }
 
     /** Lowercase, ё -> е, "%" -> "процентов", hyphens and punctuation split tokens,
